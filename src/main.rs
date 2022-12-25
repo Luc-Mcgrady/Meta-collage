@@ -17,11 +17,13 @@ fn main() {
     let imgs = files.into_iter().map(|a| Box::new(image_maths::open_file(&a)));
     let averages = imgs.map(|a| image_maths::image_average(&a)).collect::<Vec<[usize; 3]>>();
 
-    let mut candidates = [[256; 255]; 3];
+    const VEC_INIT: Vec<usize> = vec![];
+    const INIT: [Vec<usize>; 255] = [VEC_INIT; 255];
+    let mut candidates = [INIT; 3];
 
     for iaverage in 0..averages.len() {
         for ichannel in 0..candidates.len() {
-            candidates[ichannel][averages[iaverage][ichannel]] = iaverage; 
+            candidates[ichannel][averages[iaverage][ichannel]].push(iaverage); 
         }
     }
 
