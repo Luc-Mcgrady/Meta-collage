@@ -12,13 +12,13 @@ pub fn image_sum(image: &DynamicImage) -> [u32; 3] {
     return pixels;
 }
 
-pub fn image_average(image: &DynamicImage) -> [u32; 3] {
+pub fn image_average(image: &DynamicImage) -> [usize; 3] {
     let sums = image_sum(image);
-    let mut averages = [0, 0, 0];
+    let mut averages: [usize; 3] = [0, 0, 0];
     let bytes = image.as_bytes();
 
     for i in 0..sums.len() {
-        averages[i] = sums[i] / u32::try_from(bytes.len() / 3).expect("Too big!!")
+        averages[i] = usize::try_from(sums[i]).expect("What") / bytes.len() * 3
     }
 
     return averages;

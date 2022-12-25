@@ -22,8 +22,14 @@ fn main() {
     // [[std::vec::Vec<&DynamicImage>; 255]; 3]
     const INIT: std::vec::Vec<Box<DynamicImage>> = vec![];
     const COLOURS: usize = 255;
-    const CHANNEL: [std::vec::Vec<Box<DynamicImage>>; COLOURS] = [INIT; COLOURS];
-    let mut candidates = [CHANNEL; 3];
+    const CHANNEL: [[std::vec::Vec<Box<DynamicImage>>; COLOURS]; 3] = [[INIT; COLOURS], [INIT; COLOURS], [INIT; COLOURS]];
+    let mut candidates = CHANNEL;
+
+    for (average, img) in averages {
+        for ichannel in 0..candidates.len() {
+            candidates[ichannel][average[ichannel]].push(img.clone())
+        }
+    }
 
     println!("{:?}",candidates);
 }
