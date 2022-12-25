@@ -1,3 +1,5 @@
+use std::env::Args;
+
 use image::{io::Reader as ImageReader, DynamicImage};
 
 pub fn image_sum(image: &DynamicImage) -> [u32; 3] {

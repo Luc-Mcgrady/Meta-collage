@@ -12,10 +12,10 @@ pub mod image_maths;
 
 fn main() {
 
-    let files = ["half.png", "thing.png"].map(|a| ["test/", a].join(""));
-
-    let imgs = files.map(|a| Box::new(image_maths::open_file(&a)));
-    let averages = imgs.map(|a| image_maths::image_average(&a));
+    let paths = std::fs::read_dir("./test/").unwrap();
+    let files = paths.map(|a| a.unwrap().path().to_str().expect("Cant convert into string?").to_owned() ).collect::<std::vec::Vec<String>>();
+    let imgs = files.into_iter().map(|a| Box::new(image_maths::open_file(&a)));
+    let averages = imgs.map(|a| image_maths::image_average(&a)).collect::<Vec<[usize; 3]>>();
 
     let mut candidates = [[256; 255]; 3];
 
