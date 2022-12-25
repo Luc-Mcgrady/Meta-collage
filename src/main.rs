@@ -10,24 +10,18 @@
 // FIN
 pub mod image_maths;
 
-use image::{DynamicImage};
-
 fn main() {
 
     let files = ["half.png", "thing.png"].map(|a| ["test/", a].join(""));
 
     let imgs = files.map(|a| Box::new(image_maths::open_file(&a)));
-    let averages = imgs.map(|a| (image_maths::image_average(&a), a));
+    let averages = imgs.map(|a| image_maths::image_average(&a));
 
-    // [[std::vec::Vec<&DynamicImage>; 255]; 3]
-    const INIT: std::vec::Vec<Box<DynamicImage>> = vec![];
-    const COLOURS: usize = 255;
-    const CHANNEL: [[std::vec::Vec<Box<DynamicImage>>; COLOURS]; 3] = [[INIT; COLOURS], [INIT; COLOURS], [INIT; COLOURS]];
-    let mut candidates = CHANNEL;
+    let mut candidates = [[256; 255]; 3];
 
-    for (average, img) in averages {
+    for iaverage in 0..averages.len() {
         for ichannel in 0..candidates.len() {
-            candidates[ichannel][average[ichannel]].push(img.clone())
+            candidates[ichannel][averages[iaverage][ichannel]] = iaverage; 
         }
     }
 
