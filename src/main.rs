@@ -11,7 +11,7 @@
 
 use image::{io::Reader as ImageReader, DynamicImage};
 
-fn imageSum(image: &DynamicImage) -> [u32; 3] {
+fn image_sum(image: &DynamicImage) -> [u32; 3] {
     let bytes = image.as_bytes();
 
     let mut pixels: [u32; 3] = [0, 0, 0];
@@ -23,8 +23,8 @@ fn imageSum(image: &DynamicImage) -> [u32; 3] {
     return pixels;
 }
 
-fn imageAverage(image: &DynamicImage) -> [u32; 3] {
-    let sums = imageSum(image);
+fn image_average(image: &DynamicImage) -> [u32; 3] {
+    let sums = image_sum(image);
     let mut averages = [0, 0, 0];
     let bytes = image.as_bytes();
 
@@ -38,5 +38,5 @@ fn imageAverage(image: &DynamicImage) -> [u32; 3] {
 fn main() {
     let img = ImageReader::open("test/half.png").expect("Failed to open file").decode().expect("Failed to decode file");
 
-    println!("{:?}", imageAverage(&img));
+    println!("{:?}", image_average(&img));
 }
