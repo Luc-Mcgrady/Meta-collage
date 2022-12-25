@@ -9,10 +9,34 @@
 // Given frame is used to replace area.
 // FIN
 
-fn print(thing: &str) {
-    println!("{}",thing);
+use image::{io::Reader as ImageReader, DynamicImage};
+
+fn imageSum(image: &DynamicImage) -> [u32; 3] {
+    let bytes = image.as_bytes();
+
+    let mut pixels: [u32; 3] = [0, 0, 0];
+
+    for i in 0..bytes.len() {
+        pixels[i % 3] += u32::from(bytes[i])
+    }
+
+    return pixels;
+}
+
+fn imageAverage(image: &DynamicImage) -> [u32; 3] {
+    let sums = imageSum(image);
+    let mut averages = [0, 0, 0];
+    let bytes = image.as_bytes();
+
+    for i in 0..sums.len() {
+        averages[i] = sums[i] / u32::try_from(bytes.len() / 3).expect("Too big!!")
+    }
+
+    return averages;
 }
 
 fn main() {
-    print("Hello, world!");
+    let img = ImageReader::open("test/half.png").expect("Failed to open file").decode().expect("Failed to decode file");
+
+    println!("{:?}", imageAverage(&img));
 }
