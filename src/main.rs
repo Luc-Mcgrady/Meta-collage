@@ -16,14 +16,14 @@ fn main() {
 
     let files = ["half.png", "thing.png"].map(|a| ["test/", a].join(""));
 
-    let imgs = files.map(|a| image_maths::open_file(&a));
-    let averages = imgs.map(|a| image_maths::image_average(&a));
+    let imgs = files.map(|a| Box::new(image_maths::open_file(&a)));
+    let averages = imgs.map(|a| (image_maths::image_average(&a), a));
 
     // [[std::vec::Vec<&DynamicImage>; 255]; 3]
-    const init: std::vec::Vec<&DynamicImage> = vec![];
-    const colours: usize = 255;
-    const channel: [std::vec::Vec<&DynamicImage>; colours] = [init; colours];
-    let mut candidates = [channel; 3];
+    const INIT: std::vec::Vec<Box<DynamicImage>> = vec![];
+    const COLOURS: usize = 255;
+    const CHANNEL: [std::vec::Vec<Box<DynamicImage>>; COLOURS] = [INIT; COLOURS];
+    let mut candidates = [CHANNEL; 3];
 
     println!("{:?}",candidates);
 }
