@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 // PLAN
 // Frames 1, 2 and 3 each have a RGB Value of 4 apart
 // Each frame gets its average 8 bit colour value
@@ -27,5 +29,8 @@ fn main() {
         }
     }
 
-    println!("{:?}",candidates);
+    let mut i = 0;
+    let exact: HashMap<_, _> = averages.into_iter().map(|a| {i+=1; return (a, i);}).collect();
+
+    println!("{:?}",exact);
 }
