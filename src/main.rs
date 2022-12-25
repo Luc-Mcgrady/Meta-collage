@@ -35,8 +35,15 @@ fn image_average(image: &DynamicImage) -> [u32; 3] {
     return averages;
 }
 
-fn main() {
-    let img = ImageReader::open("test/half.png").expect("Failed to open file").decode().expect("Failed to decode file");
+fn open_file(filename: &str) -> DynamicImage {
+    return ImageReader::open(filename).expect("Failed to open file").decode().expect("Failed to decode file");
+}
 
-    println!("{:?}", image_average(&img));
+fn main() {
+
+    let files = ["half.png", "thing.png"].map(|a| ["test/", a].join(""));
+
+    let imgs = files.map(|a| open_file(&a));
+
+    println!("{:?}", imgs.map(|a| image_average(&a)));
 }
