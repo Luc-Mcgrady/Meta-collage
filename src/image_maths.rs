@@ -25,6 +25,6 @@ pub fn image_average(image: &DynamicImage) -> [usize; 3] {
 }
 
 pub fn open_file(filename: &str) -> DynamicImage {
-    println!("{}", filename);
+    //println!("{}", filename);
     return ImageReader::open(filename).expect("Failed to open file").decode().expect("Failed to decode file");
 }

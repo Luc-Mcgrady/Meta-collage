@@ -17,35 +17,30 @@ use image::{DynamicImage};
 fn main() {
     type RGB = [usize; 3];
     
+    println!("Loading files and calculating averages...");
     let paths = std::fs::read_dir("./steamed-hams/").unwrap();
     let files = paths.map(|a| a.unwrap().path().to_str().expect("Cant convert into string?").to_owned() ).collect::<std::vec::Vec<String>>();
-    let imgs = files.into_iter().map(|a| image_maths::open_file(&a)).collect::<Vec<DynamicImage>>();
-    let averages = imgs.into_iter().map(|a| image_maths::image_average(&a)).collect::<Vec<[usize; 3]>>();
+    let imgs = &files.into_iter().map(|a| image_maths::open_file(&a)).collect::<Vec<DynamicImage>>();
+    let averages = &imgs.into_iter().map(|a| image_maths::image_average(&a)).collect::<Vec<[usize; 3]>>();
     
-    println!("{:?}","Creating candidate table");
-    
-    const VEC_INIT: Vec<usize> = vec![];
-    const INIT: [Vec<usize>; 255] = [VEC_INIT; 255];
-    let mut candidates = [INIT; 3];
-
-    /*for iaverage in 0..averages.len() {
-        for ichannel in 0..candidates.len() {
-            candidates[ichannel][averages[iaverage][ichannel]].push(iaverage); 
-        }
-    }*/
+    println!("Creating match table...");
 
     let mut i = 0;
-    let exact: HashMap<RGB, usize> = averages.into_iter().map(|a| {i+=1; return (a, i);}).collect();
+    let exact: HashMap<RGB, usize> = averages.to_owned().into_iter().map(|a| {i+=1; return (a, i);}).collect();
 
-    const BLOCK_SIZE: usize = 0;
+    println!("Processing...");
 
-    fn blockify(exact: &HashMap<RGB, usize>, imgs: &Vec<DynamicImage>) {
-        for img in imgs {
-            //img.crop(0, 0, width, height);
-            
-            let index = exact[&image_maths::image_average(&img)];
-            (&imgs).get(index);
-        }
-    }
+    const BLOCK_SIZE: u32 = 50;
+
+    //for img in imgs {
+        let img = &imgs[0];
+        let block = &img.clone().crop(0, 0, BLOCK_SIZE, BLOCK_SIZE * (&img).height() / (&img).width());
+        block.save("test/Block.png").expect("Could not save block image");
+
+        let index = exact[&image_maths::image_average(&block)];
+        let gotten = (&imgs).get(index).expect("Error fetching image");
+
+        gotten.save("test/Gotten.png").expect("Could not save Gotton image");
+    //}
 
 }
