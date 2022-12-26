@@ -13,15 +13,31 @@ use std::collections::HashMap;
 pub mod image_maths;
 
 use image::{DynamicImage};
+use serde::{Serialize, Deserialize};
 
 fn main() {
     type RGB = [usize; 3];
     
-    println!("Loading files and calculating averages...");
+    println!("Loading files...");
     let paths = std::fs::read_dir("./steamed-hams/").unwrap();
-    let files = paths.map(|a| a.unwrap().path().to_str().expect("Cant convert into string?").to_owned() ).collect::<std::vec::Vec<String>>();
-    let imgs = &files.into_iter().map(|a| image_maths::open_file(&a)).collect::<Vec<DynamicImage>>();
-    let averages = &imgs.into_iter().map(|a| image_maths::image_average(&a)).collect::<Vec<[usize; 3]>>();
+    println!("Loading files1...");
+    let files: &Vec<String> = &paths.map(|a| a.unwrap().path().to_str().expect("Cant convert into string?").to_owned() ).collect();
+    println!("Loading files2...");
+    let imgs: &Vec<(&String, DynamicImage)> = &files.into_iter().map(|path| (path, image_maths::open_file(path))).collect();
+    println!("Loading files3...");
+    let image_arr: &Vec<&DynamicImage> = &imgs.into_iter().map(|(a, b)| b).collect();
+    println!("Calculating averages...");
+    let averages = &imgs.into_iter().map(|(path, image)| {
+        
+        let average = image_maths::image_average(&image);
+        let path = [path.to_owned().to_owned(), String::from(".avg")].join("");
+
+        let pickled = serde_pickle::to_value(&average).expect("Couldent pickle :(");
+        std::fs::write(path, pickled.to_string()).expect("Failed to write to file");
+
+        return average;
+    }
+    ).collect::<Vec<[usize; 3]>>();
     
     println!("Creating match table...");
 
@@ -33,12 +49,12 @@ fn main() {
     const BLOCK_SIZE: u32 = 50;
 
     //for img in imgs {
-        let img = &imgs[0];
-        let block = &img.clone().crop(0, 0, BLOCK_SIZE, BLOCK_SIZE * (&img).height() / (&img).width());
+        let img = &image_arr[0];
+        let block = &img.to_owned().to_owned().crop(0, 0, BLOCK_SIZE, BLOCK_SIZE * (&img).height() / (&img).width());
         block.save("test/Block.png").expect("Could not save block image");
 
         let index = exact[&image_maths::image_average(&block)];
-        let gotten = (&imgs).get(index).expect("Error fetching image");
+        let gotten = (&image_arr).get(index).expect("Error fetching image");
 
         gotten.save("test/Gotten.png").expect("Could not save Gotton image");
     //}
