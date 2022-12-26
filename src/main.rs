@@ -35,7 +35,7 @@ fn main() {
             std::fs::create_dir(cache_parent).unwrap();
         }
 
-        let cache_path = cache_parent.join(path.file_name().unwrap());
+        let cache_path = cache_parent.join(format!("{}.avg", path.file_name().unwrap().to_str().unwrap()));
 
         if cache_path.exists() {
             let average_file = std::fs::read(cache_path).expect("Can not read file");
@@ -56,8 +56,7 @@ fn main() {
     
     println!("Creating match table...");
 
-    let mut i = 0;
-    let exact: HashMap<RGB, usize> = averages.to_owned().into_iter().map(|(_, a)| {i+=1; return (a, i);}).collect();
+    let exact: HashMap<RGB, usize> = averages.to_owned().into_iter().enumerate().map(|(i, (_, a))| (a, i)).collect();
 
     println!("Processing...");
 
