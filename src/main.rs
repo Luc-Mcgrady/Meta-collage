@@ -24,10 +24,10 @@ fn main() {
     let files: &Vec<PathBuf> = &paths.map(|a| a.unwrap().path().to_owned() ).collect();
 
     println!("Loading files2...");
-    let imgs = &files.into_iter().map(|path| (path, image_maths::open_file(path)));
+    let imgs = &files.into_iter().map(|path| (path, Box::new(image_maths::open_file(path))));
 
     println!("Calculating averages...");
-    let averages = &imgs.to_owned().into_iter().map(|(path, image)| {
+    let averages: &Vec<(Box<DynamicImage>,RGB)> = &imgs.to_owned().into_iter().map(|(path, image)| {
         
         let cache_parent = &path.parent().unwrap().parent().unwrap().join(".cache");
 
@@ -52,7 +52,7 @@ fn main() {
 
         return (image, average);
     }
-    ).collect::<Vec<(DynamicImage,RGB)>>();
+    ).collect();
     
     println!("Creating match table...");
 
