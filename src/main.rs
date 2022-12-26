@@ -55,31 +55,18 @@ fn main() {
     }
     ).collect();
     
-/*    println!("Creating exact match table...");
-    
-    let exact: HashMap<RGB, usize> = averages.to_owned().into_iter().enumerate().map(|(i, (_, a))| (a, i)).collect();
-    
-    println!("Creating partial match table...");
-
-    const VEC_INIT: Vec<usize> = vec![];
-    const INIT: [Vec<usize>; 255] = [VEC_INIT; 255];
-    let mut candidates = [INIT; 3];
-
-    
-    for iaverage in 0..averages.len() {
-        for ichannel in 0..candidates.len() {
-            candidates[ichannel][averages.get(iaverage).unwrap().1[ichannel]].push(iaverage); 
-        }
-    }
-*/
-
     println!("Processing...");
 
     const BLOCK_SIZE: u32 = 50;
 
     //for img in imgs {
+
         let img = &averages[0].0;
-        let block = &img.deref().clone().crop(0, 0, BLOCK_SIZE, BLOCK_SIZE * (&img).height() / (&img).width());
+
+        let width = BLOCK_SIZE * (&img).height() / (&img).width();
+        let height = BLOCK_SIZE;
+
+        let block = &img.deref().clone().crop(0, 0, width, height);
         block.save("test/Block.png").expect("Could not save block image");
         
         let average = &image_maths::image_average(&block);
@@ -92,7 +79,8 @@ fn main() {
             
         });
         
-        averages[0].0.save("test/Block.png").expect("Could not save block image");
+        averages[0].0.resize(width, height, image::imageops::FilterType::Triangle)
+            .save("test/Replacement.png").expect("Could not save block image");
         //}
 
 }
