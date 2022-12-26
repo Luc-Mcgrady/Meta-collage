@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap};
 
 // PLAN
 // Frames 1, 2 and 3 each have a RGB Value of 4 apart
@@ -13,7 +13,13 @@ use std::collections::HashMap;
 pub mod image_maths;
 
 use image::{DynamicImage};
-use serde::{Serialize, Deserialize};
+use std::path::{Path, PathBuf};
+
+// https://stackoverflow.com/questions/66193779/how-to-add-a-folder-to-a-path-before-the-filename
+fn append_dir(p: &Path, d: &str) -> PathBuf {
+    let dirs = p.parent().unwrap();
+    dirs.join(d).join(p.file_name().unwrap())
+}
 
 fn main() {
     type RGB = [usize; 3];
@@ -29,11 +35,23 @@ fn main() {
     println!("Calculating averages...");
     let averages = &imgs.to_owned().into_iter().map(|(path, image)| {
         
-        let average = image_maths::image_average(&image);
-        let path = [path.to_owned().to_owned(), String::from(".avg")].join("");
 
-        let pickled = serde_pickle::to_value(&average).expect("Couldent pickle :(");
-        std::fs::write(path, pickled.to_string()).expect("Failed to write to file");
+        let path =[path.to_owned(), String::from(".avg")].join("");
+        let ppath = std::path::Path::new(&path);
+        let cache_path = append_dir(ppath, ".cache");
+
+        if cache_path.exists() {
+            let average_file = std::fs::read(cache_path).expect("Can not read file");
+
+            let average: RGB = serde_pickle::from_iter(average_file.into_iter(), Default::default()).expect("Invalid file format");
+
+            return (image, average);
+        }
+
+        let average = image_maths::image_average(&image);
+
+        let pickled = serde_pickle::to_vec(&average, Default::default()).expect("Couldent pickle :(");
+        std::fs::write(cache_path, pickled).expect("Failed to write to file");
 
         return (image, average);
     }
