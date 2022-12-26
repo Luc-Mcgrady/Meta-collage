@@ -12,9 +12,11 @@ use std::collections::HashMap;
 // FIN
 pub mod image_maths;
 
-fn main() {
 
-    let paths = std::fs::read_dir("./test/").unwrap();
+fn main() {
+    type RGB = [usize; 3];
+    
+    let paths = std::fs::read_dir("./steamed-ha/").unwrap();
     let files = paths.map(|a| a.unwrap().path().to_str().expect("Cant convert into string?").to_owned() ).collect::<std::vec::Vec<String>>();
     let imgs = files.into_iter().map(|a| Box::new(image_maths::open_file(&a)));
     let averages = imgs.map(|a| image_maths::image_average(&a)).collect::<Vec<[usize; 3]>>();
@@ -30,7 +32,11 @@ fn main() {
     }
 
     let mut i = 0;
-    let exact: HashMap<_, _> = averages.into_iter().map(|a| {i+=1; return (a, i);}).collect();
+    let exact: HashMap<RGB, usize> = averages.into_iter().map(|a| {i+=1; return (a, i);}).collect();
+
+    let thing = |average: RGB| {
+        return exact[&average];
+    };
 
     println!("{:?}",exact);
 }
