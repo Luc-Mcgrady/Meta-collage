@@ -66,7 +66,7 @@ fn main() {
         let width = BLOCK_SIZE * (&img).height() / (&img).width();
         let height = BLOCK_SIZE;
 
-        let block = &img.deref().clone().crop(0, 0, width, height);
+        let block = &img.deref().clone().crop(0, 0, height, width);
         block.save("test/Block.png").expect("Could not save block image");
         
         let average = &image_maths::image_average(&block);
