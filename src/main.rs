@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::{collections::HashMap, fmt::format};
 
 // PLAN
 // Frames 1, 2 and 3 each have a RGB Value of 4 apart
@@ -15,19 +15,13 @@ pub mod image_maths;
 use image::{DynamicImage};
 use std::path::{Path, PathBuf};
 
-// https://stackoverflow.com/questions/66193779/how-to-add-a-folder-to-a-path-before-the-filename
-fn append_dir(p: &Path, d: &str) -> PathBuf {
-    let dirs = p.parent().unwrap();
-    dirs.join(d).join(p.file_name().unwrap())
-}
-
 fn main() {
     type RGB = [usize; 3];
     
     println!("Loading files...");
     let paths = std::fs::read_dir("./steamed-hams/").unwrap();
     println!("Loading files1...");
-    let files: &Vec<String> = &paths.map(|a| a.unwrap().path().to_str().expect("Cant convert into string?").to_owned() ).collect();
+    let files: &Vec<PathBuf> = &paths.map(|a| a.unwrap().path().to_owned() ).collect();
 
     println!("Loading files2...");
     let imgs = &files.into_iter().map(|path| (path, image_maths::open_file(path)));
@@ -35,10 +29,13 @@ fn main() {
     println!("Calculating averages...");
     let averages = &imgs.to_owned().into_iter().map(|(path, image)| {
         
+        let cache_parent = &path.parent().unwrap().parent().unwrap().join(".cache");
 
-        let path =[path.to_owned(), String::from(".avg")].join("");
-        let ppath = std::path::Path::new(&path);
-        let cache_path = append_dir(ppath, ".cache");
+        if !cache_parent.exists() {
+            std::fs::create_dir(cache_parent).unwrap();
+        }
+
+        let cache_path = cache_parent.join(path.file_name().unwrap());
 
         if cache_path.exists() {
             let average_file = std::fs::read(cache_path).expect("Can not read file");

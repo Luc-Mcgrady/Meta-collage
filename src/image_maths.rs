@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use image::{io::Reader as ImageReader, DynamicImage};
 
 pub fn image_sum(image: &DynamicImage) -> [u32; 3] {
@@ -24,7 +26,7 @@ pub fn image_average(image: &DynamicImage) -> [usize; 3] {
     return averages;
 }
 
-pub fn open_file(filename: &String) -> DynamicImage {
+pub fn open_file(filename: &PathBuf) -> DynamicImage {
     //println!("{}", filename);
     return ImageReader::open(filename).expect("Failed to open file").decode().expect("Failed to decode file");
 }
