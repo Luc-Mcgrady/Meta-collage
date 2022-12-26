@@ -1,4 +1,5 @@
-use std::{collections::HashMap, fmt::format};
+use std::ops::Deref;
+use std::{collections::HashMap};
 
 // PLAN
 // Frames 1, 2 and 3 each have a RGB Value of 4 apart
@@ -13,7 +14,8 @@ use std::{collections::HashMap, fmt::format};
 pub mod image_maths;
 
 use image::{DynamicImage};
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
+use std::rc::{Rc};
 
 fn main() {
     type RGB = [usize; 3];
@@ -24,10 +26,10 @@ fn main() {
     let files: &Vec<PathBuf> = &paths.map(|a| a.unwrap().path().to_owned() ).collect();
 
     println!("Loading files2...");
-    let imgs = &files.into_iter().map(|path| (path, Box::new(image_maths::open_file(path))));
+    let imgs = &files.into_iter().map(|path| (path, Rc::new(image_maths::open_file(path))));
 
     println!("Calculating averages...");
-    let averages: &Vec<(Box<DynamicImage>,RGB)> = &imgs.to_owned().into_iter().map(|(path, image)| {
+    let averages: &Vec<(Rc<DynamicImage>,RGB)> = &imgs.to_owned().into_iter().map(|(path, image)| {
         
         let cache_parent = &path.parent().unwrap().parent().unwrap().join(".cache");
 
@@ -64,7 +66,7 @@ fn main() {
 
     //for img in imgs {
         let img = &averages[0].0;
-        let block = &img.to_owned().to_owned().crop(0, 0, BLOCK_SIZE, BLOCK_SIZE * (&img).height() / (&img).width());
+        let block = &img.deref().clone().crop(0, 0, BLOCK_SIZE, BLOCK_SIZE * (&img).height() / (&img).width());
         block.save("test/Block.png").expect("Could not save block image");
 
         let index = exact[&image_maths::image_average(&block)];
