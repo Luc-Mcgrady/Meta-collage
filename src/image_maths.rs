@@ -1,5 +1,3 @@
-use std::env::Args;
-
 use image::{io::Reader as ImageReader, DynamicImage};
 
 pub fn image_sum(image: &DynamicImage) -> [u32; 3] {
@@ -27,5 +25,6 @@ pub fn image_average(image: &DynamicImage) -> [usize; 3] {
 }
 
 pub fn open_file(filename: &str) -> DynamicImage {
+    println!("{}", filename);
     return ImageReader::open(filename).expect("Failed to open file").decode().expect("Failed to decode file");
 }

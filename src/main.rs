@@ -16,7 +16,7 @@ pub mod image_maths;
 fn main() {
     type RGB = [usize; 3];
     
-    let paths = std::fs::read_dir("./steamed-ha/").unwrap();
+    let paths = std::fs::read_dir("./steamed-hams/").unwrap();
     let files = paths.map(|a| a.unwrap().path().to_str().expect("Cant convert into string?").to_owned() ).collect::<std::vec::Vec<String>>();
     let imgs = files.into_iter().map(|a| Box::new(image_maths::open_file(&a)));
     let averages = imgs.map(|a| image_maths::image_average(&a)).collect::<Vec<[usize; 3]>>();
