@@ -61,26 +61,35 @@ fn main() {
 
     //for img in imgs {
 
-        let img = &averages[0].0;
+        let mut img = averages[0].0.deref().to_owned();
 
         let width = BLOCK_SIZE * (&img).height() / (&img).width();
         let height = BLOCK_SIZE;
 
-        let block = &img.deref().clone().crop(0, 0, height, width);
-        block.save("test/Block.png").expect("Could not save block image");
-        
-        let average = &image_maths::image_average(&block);
-        averages.sort_unstable_by(|(_, a), (_, b)| {
+        for x in (0..img.width()-width).step_by(usize::try_from(width).unwrap()){
+
+            let block = &img.clone().crop(x, 0, width, height);
+            block.save("test/Block.png").expect("Could not save block image");
             
-            let aval = a[0]-average[0] + a[1]-average[1] + a[2]-average[2];
-            let bval = b[0]-average[0] + b[1]-average[1] + b[2]-average[2];
+            let average = &image_maths::image_average(&block);
+            averages.sort_unstable_by(|(_, a), (_, b)| {
+                
+                let aval = a[0]-average[0] + a[1]-average[1] + a[2]-average[2];
+                let bval = b[0]-average[0] + b[1]-average[1] + b[2]-average[2];
+                
+                return aval.cmp(&bval);
+                
+            });
             
-            return aval.cmp(&bval);
-            
-        });
-        
-        averages[0].0.resize(width, height, image::imageops::FilterType::Triangle)
-            .save("test/Replacement.png").expect("Could not save block image");
-        //}
+            let chosen = averages[0].0.deref().resize(width, height, image::imageops::FilterType::Triangle);
+
+            image::imageops::overlay(&mut img, &chosen, x.into(), 0);
+
+            img.save("test/overlayed.png").unwrap();
+
+            //chosen.resize(width, height, image::imageops::FilterType::Triangle)
+            //    .save("test/Replacement.png").expect("Could not save block image");
+            //}
+        }
 
 }
