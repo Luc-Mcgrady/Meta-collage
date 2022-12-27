@@ -25,18 +25,24 @@ fn collageify(image: &mut DynamicImage, block_size: u32, averages: &Vec<(Rc<Dyna
     let height = block_size;
     let averagess = &averages.to_owned();
 
+    let toi16 = |a: usize| i16::try_from(a).unwrap(); 
+
     for x in (0..image.width()-width).step_by(usize::try_from(width).unwrap()){
         for y in (0..image.height()-height).step_by(usize::try_from(height).unwrap()){  
 
         let block = &image.clone().crop(x, y, width, height);
         //block.save("test/Block.png").expect("Could not save block image");
         
-        let average = &image_maths::image_average(&block);
+        let average = &image_maths::image_average(&block).map(toi16);
         let chosen = averagess.into_iter().min_by(|(_, a), (_, b)| {
             
-            let aval = a[0]-average[0] + a[1]-average[1] + a[2]-average[2];
-            let bval = b[0]-average[0] + b[1]-average[1] + b[2]-average[2];
-            return aval.cmp(&bval);
+            let ai = a.map(toi16);
+            let bi = b.map(toi16);
+
+            let aval: i16 = (ai[0]-average[0]).pow(2) + (ai[1]-average[1]).pow(2) + (ai[2]-average[2]).pow(2);
+            let bval: i16 = (bi[0]-average[0]).pow(2) + (bi[1]-average[1]).pow(2) + (bi[2]-average[2]).pow(2);
+
+            return bval.cmp(&aval);
             
         }).unwrap()
         .0.deref().resize(width, height, image::imageops::FilterType::Triangle);
@@ -52,11 +58,13 @@ fn main() {
     let paths = std::fs::read_dir("./input/").unwrap();
     println!("Loading files1...");
     let files: &Vec<PathBuf> = &paths.map(|a| a.unwrap().path().to_owned() ).collect();
-
+    
     println!("Loading files2...");
     let imgs = &files.into_iter().map(|path| (path, Rc::new(image_maths::open_file(path))));
-
+    
+    
     println!("Calculating averages...");
+    let start = Instant::now();
     let averages: Vec<(Rc<DynamicImage>,RGB)> = imgs.to_owned().into_iter().map(|(path, image)| {
         
         let cache_parent = &path.parent().unwrap().parent().unwrap().join(".cache");
@@ -83,14 +91,15 @@ fn main() {
         return (image, average);
     }
     ).collect();
+    println!("Averages completed in {} secs", (Instant::now() - start).as_secs());
     
     println!("Processing...");
 
     //const BLOCK_SIZE: u32 = 12;
 
-    let image = averages[0].0.deref().to_owned();
+    let image = averages[0].0.deref();
 
-    for block_size in 10..20 {
+    for block_size in 39..40 {
         let mut tempimage = image.clone();
 
         let start = Instant::now();
