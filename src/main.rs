@@ -1,4 +1,5 @@
 use std::ops::Deref;
+use std::time::Instant;
 
 // PLAN
 // Frames 1, 2 and 3 each have a RGB Value of 4 apart
@@ -16,8 +17,36 @@ use image::{DynamicImage};
 use std::path::{PathBuf};
 use std::rc::{Rc};
 
+type RGB = [usize; 3];
+
+fn collageify(image: &mut DynamicImage, block_size: u32, averages: &Vec<(Rc<DynamicImage>,RGB)>) {
+
+    let width = block_size * (&image).width() / (&image).height();
+    let height = block_size;
+    let averagess = &averages.to_owned();
+
+    for x in (0..image.width()-width).step_by(usize::try_from(width).unwrap()){
+        for y in (0..image.height()-height).step_by(usize::try_from(height).unwrap()){  
+
+        let block = &image.clone().crop(x, y, width, height);
+        //block.save("test/Block.png").expect("Could not save block image");
+        
+        let average = &image_maths::image_average(&block);
+        let chosen = averagess.into_iter().min_by(|(_, a), (_, b)| {
+            
+            let aval = a[0]-average[0] + a[1]-average[1] + a[2]-average[2];
+            let bval = b[0]-average[0] + b[1]-average[1] + b[2]-average[2];
+            return aval.cmp(&bval);
+            
+        }).unwrap()
+        .0.deref().resize(width, height, image::imageops::FilterType::Triangle);
+
+        image::imageops::overlay(image, &chosen, x.into(), y.into());
+        }
+    }
+}
+
 fn main() {
-    type RGB = [usize; 3];
     
     println!("Loading files...");
     let paths = std::fs::read_dir("./input/").unwrap();
@@ -57,36 +86,21 @@ fn main() {
     
     println!("Processing...");
 
-    const BLOCK_SIZE: u32 = 25;
+    //const BLOCK_SIZE: u32 = 12;
 
-    //for img in imgs {
+    let image = averages[0].0.deref().to_owned();
 
-    let mut img = averages[0].0.deref().to_owned();
+    for block_size in 10..20 {
+        let mut tempimage = image.clone();
 
-    let width = BLOCK_SIZE * (&img).width() / (&img).height();
-    let height = BLOCK_SIZE;
-    let averagess = &averages.to_owned();
+        let start = Instant::now();
+        collageify(&mut tempimage, block_size, &averages);
+        println!("Block size {} completed in {} secs", block_size, (Instant::now() - start).as_secs());
 
-    for x in (0..img.width()-width).step_by(usize::try_from(width).unwrap()){
-        for y in (0..img.height()-height).step_by(usize::try_from(height).unwrap()){  
-
-        let block = &img.clone().crop(x, y, width, height);
-        //block.save("test/Block.png").expect("Could not save block image");
-        
-        let average = &image_maths::image_average(&block);
-        let chosen = averagess.into_iter().min_by(|(_, a), (_, b)| {
-            
-            let aval = a[0]-average[0] + a[1]-average[1] + a[2]-average[2];
-            let bval = b[0]-average[0] + b[1]-average[1] + b[2]-average[2];
-            return aval.cmp(&bval);
-            
-        }).unwrap()
-        .0.deref().resize(width, height, image::imageops::FilterType::Triangle);
-
-        image::imageops::overlay(&mut img, &chosen, x.into(), y.into());
-
-        }
+        tempimage.save(format!("./result/block_size{}.png", block_size)).unwrap();
     }
-    img.save("test/overlayed.png").unwrap();
+
+    //for image in imgs {
+
 
 }
