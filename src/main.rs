@@ -57,39 +57,40 @@ fn main() {
     
     println!("Processing...");
 
-    const BLOCK_SIZE: u32 = 50;
+    const BLOCK_SIZE: u32 = 200;
 
     //for img in imgs {
 
-        let mut img = averages[0].0.deref().to_owned();
+    let mut img = averages[0].0.deref().to_owned();
 
-        let width = BLOCK_SIZE * (&img).height() / (&img).width();
-        let height = BLOCK_SIZE;
+    let width = BLOCK_SIZE * (&img).height() / (&img).width();
+    let height = BLOCK_SIZE;
 
-        for x in (0..img.width()-width).step_by(usize::try_from(width).unwrap()){
+    for x in (0..img.width()-width).step_by(usize::try_from(width).unwrap()){
+        for y in (0..img.height()-height).step_by(usize::try_from(height).unwrap()){  
 
-            let block = &img.clone().crop(x, 0, width, height);
-            block.save("test/Block.png").expect("Could not save block image");
+        let block = &img.clone().crop(x, y, width, height);
+        //block.save("test/Block.png").expect("Could not save block image");
+        
+        let average = &image_maths::image_average(&block);
+        averages.sort_unstable_by(|(_, a), (_, b)| {
             
-            let average = &image_maths::image_average(&block);
-            averages.sort_unstable_by(|(_, a), (_, b)| {
-                
-                let aval = a[0]-average[0] + a[1]-average[1] + a[2]-average[2];
-                let bval = b[0]-average[0] + b[1]-average[1] + b[2]-average[2];
-                
-                return aval.cmp(&bval);
-                
-            });
+            let aval = a[0]-average[0] + a[1]-average[1] + a[2]-average[2];
+            let bval = b[0]-average[0] + b[1]-average[1] + b[2]-average[2];
+            return aval.cmp(&bval);
             
-            let chosen = averages[0].0.deref().resize(width, height, image::imageops::FilterType::Triangle);
+        });
+        
+        let chosen = averages[0].0.deref().resize(width, height, image::imageops::FilterType::Triangle);
 
-            image::imageops::overlay(&mut img, &chosen, x.into(), 0);
+        image::imageops::overlay(&mut img, &chosen, x.into(), y.into());
 
-            img.save("test/overlayed.png").unwrap();
-
-            //chosen.resize(width, height, image::imageops::FilterType::Triangle)
-            //    .save("test/Replacement.png").expect("Could not save block image");
-            //}
+        
+        //chosen.resize(width, height, image::imageops::FilterType::Triangle)
+        //    .save("test/Replacement.png").expect("Could not save block image");
+        //}
         }
+    }
+    img.save("test/overlayed.png").unwrap();
 
 }
