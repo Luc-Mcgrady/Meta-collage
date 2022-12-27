@@ -20,7 +20,7 @@ fn main() {
     type RGB = [usize; 3];
     
     println!("Loading files...");
-    let paths = std::fs::read_dir("./steamed-hams/").unwrap();
+    let paths = std::fs::read_dir("./input/").unwrap();
     println!("Loading files1...");
     let files: &Vec<PathBuf> = &paths.map(|a| a.unwrap().path().to_owned() ).collect();
 
