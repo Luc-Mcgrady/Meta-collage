@@ -102,17 +102,17 @@ fn main() {
 
     for i in 0..averages.len() {
 
-        let pathstr = format!("./result/{:<5}.png", i);
+        let pathstr = format!("./result/{:0width$}.png", i, width = 5);
         let path = Path::new(&pathstr);
 
         if path.exists() {
-            print!("Skipping {}", i);
+            println!("Skipping {}", i);
             continue;
         }
 
         let start = Instant::now();
-        let mut solved = collageify( averages[i].0.deref(), BLOCK_SIZE, &averages);
-        println!("Frame {} completed in {} secs", BLOCK_SIZE, (Instant::now() - start).as_secs());
+        let solved = collageify( averages[i].0.deref(), BLOCK_SIZE, &averages);
+        println!("Frame {} completed in {} secs", i, (Instant::now() - start).as_secs());
 
         solved.save(path).unwrap();
     }
