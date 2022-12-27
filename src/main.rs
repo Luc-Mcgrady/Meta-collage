@@ -38,8 +38,8 @@ fn collageify(image: &mut DynamicImage, block_size: u32, averages: &Vec<(Rc<Dyna
             let ai = a.map(toi16);
             let bi = b.map(toi16);
 
-            let aval: i16 = (ai[0]-average[0]).pow(2) + (ai[1]-average[1]).pow(2) + (ai[2]-average[2]).pow(2);
-            let bval: i16 = (bi[0]-average[0]).pow(2) + (bi[1]-average[1]).pow(2) + (bi[2]-average[2]).pow(2);
+            let aval: i16 = (ai[0]-average[0]).abs() + (ai[1]-average[1]).abs() + (ai[2]-average[2]).abs();
+            let bval: i16 = (bi[0]-average[0]).abs() + (bi[1]-average[1]).abs() + (bi[2]-average[2]).abs();
 
             return bval.cmp(&aval);
             
