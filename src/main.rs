@@ -55,11 +55,13 @@ fn main() {
     
     println!("Loading files...");
     let paths = std::fs::read_dir("./input/").unwrap();
+
     println!("Loading files1...");
-    let files: &Vec<PathBuf> = &paths.map(|a| a.unwrap().path().to_owned() ).collect();
+    let mut files: Vec<PathBuf> = paths.map(|a| a.unwrap().path().to_owned() ).collect();
+    files.sort_unstable();
     
     println!("Loading files2...");
-    let imgs = &files.into_iter().map(|path| (path, Rc::new(image_maths::open_file(path))));
+    let imgs = &(&files).into_iter().map(|path| (path, Rc::new(image_maths::open_file(path))));
     
     
     println!("Calculating averages...");
@@ -94,19 +96,19 @@ fn main() {
     
     println!("Processing...");
 
-    //const BLOCK_SIZE: u32 = 12;
+    const BLOCK_SIZE: u32 = 35;
 
-    let image = averages[10].0.deref();
+    let mut image = averages[0].0.deref().to_owned();
 
-    for block_size in 15..16 {
-        let mut tempimage = image.clone();
+    //for block_size in 20..50 {
+        //let mut tempimage = image.clone();
 
         let start = Instant::now();
-        collageify(&mut tempimage, block_size, &averages);
-        println!("Block size {} completed in {} secs", block_size, (Instant::now() - start).as_secs());
+        collageify(&mut image, BLOCK_SIZE, &averages);
+        println!("Block size {} completed in {} secs", BLOCK_SIZE, (Instant::now() - start).as_secs());
 
-        tempimage.save(format!("./result/block_size{}.png", block_size)).unwrap();
-    }
+        image.save(format!("./result/0.png")).unwrap();
+    //}
 
     //for image in imgs {
 
