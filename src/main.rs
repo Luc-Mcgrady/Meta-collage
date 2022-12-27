@@ -23,7 +23,6 @@ fn collageify(image: &mut DynamicImage, block_size: u32, averages: &Vec<(Rc<Dyna
 
     let width = block_size * (&image).width() / (&image).height();
     let height = block_size;
-    let averagess = &averages.to_owned();
 
     let toi16 = |a: usize| i16::try_from(a).unwrap(); 
 
@@ -34,7 +33,7 @@ fn collageify(image: &mut DynamicImage, block_size: u32, averages: &Vec<(Rc<Dyna
         //block.save("test/Block.png").expect("Could not save block image");
         
         let average = &image_maths::image_average(&block).map(toi16);
-        let chosen = averagess.into_iter().min_by(|(_, a), (_, b)| {
+        let chosen = averages.into_iter().min_by(|(_, a), (_, b)| {
             
             let ai = a.map(toi16);
             let bi = b.map(toi16);
