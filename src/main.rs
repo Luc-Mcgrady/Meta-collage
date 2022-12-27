@@ -28,7 +28,7 @@ fn main() {
     let imgs = &files.into_iter().map(|path| (path, Rc::new(image_maths::open_file(path))));
 
     println!("Calculating averages...");
-    let mut averages: Vec<(Rc<DynamicImage>,RGB)> = imgs.to_owned().into_iter().map(|(path, image)| {
+    let averages: Vec<(Rc<DynamicImage>,RGB)> = imgs.to_owned().into_iter().map(|(path, image)| {
         
         let cache_parent = &path.parent().unwrap().parent().unwrap().join(".cache");
 
@@ -65,6 +65,7 @@ fn main() {
 
     let width = BLOCK_SIZE * (&img).height() / (&img).width();
     let height = BLOCK_SIZE;
+    let averagess = &averages.to_owned();
 
     for x in (0..img.width()-width).step_by(usize::try_from(width).unwrap()){
         for y in (0..img.height()-height).step_by(usize::try_from(height).unwrap()){  
@@ -73,22 +74,17 @@ fn main() {
         //block.save("test/Block.png").expect("Could not save block image");
         
         let average = &image_maths::image_average(&block);
-        averages.sort_unstable_by(|(_, a), (_, b)| {
+        let chosen = averagess.into_iter().min_by(|(_, a), (_, b)| {
             
             let aval = a[0]-average[0] + a[1]-average[1] + a[2]-average[2];
             let bval = b[0]-average[0] + b[1]-average[1] + b[2]-average[2];
             return aval.cmp(&bval);
             
-        });
-        
-        let chosen = averages[0].0.deref().resize(width, height, image::imageops::FilterType::Triangle);
+        }).unwrap()
+        .0.deref().resize(width, height, image::imageops::FilterType::Triangle);
 
         image::imageops::overlay(&mut img, &chosen, x.into(), y.into());
 
-        
-        //chosen.resize(width, height, image::imageops::FilterType::Triangle)
-        //    .save("test/Replacement.png").expect("Could not save block image");
-        //}
         }
     }
     img.save("test/overlayed.png").unwrap();
