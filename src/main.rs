@@ -26,8 +26,8 @@ fn collageify(image: &mut DynamicImage, block_size: u32, averages: &Vec<(Rc<Dyna
 
     let toi16 = |a: usize| i16::try_from(a).unwrap(); 
 
-    for x in (0..image.width()-width).step_by(usize::try_from(width).unwrap()){
-        for y in (0..image.height()-height).step_by(usize::try_from(height).unwrap()){  
+    for x in (0..image.width()).step_by(usize::try_from(width).unwrap()){
+        for y in (0..image.height()).step_by(usize::try_from(height).unwrap()){  
 
         let block = &image.clone().crop(x, y, width, height);
         //block.save("test/Block.png").expect("Could not save block image");
