@@ -41,7 +41,7 @@ fn collageify(image: &mut DynamicImage, block_size: u32, averages: &Vec<(Rc<Dyna
             let aval: i16 = (ai[0]-average[0]).abs() + (ai[1]-average[1]).abs() + (ai[2]-average[2]).abs();
             let bval: i16 = (bi[0]-average[0]).abs() + (bi[1]-average[1]).abs() + (bi[2]-average[2]).abs();
 
-            return bval.cmp(&aval);
+            return aval.cmp(&bval);
             
         }).unwrap()
         .0.deref().resize(width, height, image::imageops::FilterType::Triangle);
@@ -96,9 +96,9 @@ fn main() {
 
     //const BLOCK_SIZE: u32 = 12;
 
-    let image = averages[0].0.deref();
+    let image = averages[10].0.deref();
 
-    for block_size in 39..40 {
+    for block_size in 15..16 {
         let mut tempimage = image.clone();
 
         let start = Instant::now();
