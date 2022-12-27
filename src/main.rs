@@ -57,13 +57,13 @@ fn main() {
     
     println!("Processing...");
 
-    const BLOCK_SIZE: u32 = 200;
+    const BLOCK_SIZE: u32 = 25;
 
     //for img in imgs {
 
     let mut img = averages[0].0.deref().to_owned();
 
-    let width = BLOCK_SIZE * (&img).height() / (&img).width();
+    let width = BLOCK_SIZE * (&img).width() / (&img).height();
     let height = BLOCK_SIZE;
     let averagess = &averages.to_owned();
 
