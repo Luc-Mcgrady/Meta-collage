@@ -19,12 +19,13 @@ use std::rc::{Rc};
 
 type RGB = [usize; 3];
 
-fn collageify(image:&mut DynamicImage, block_size: u32, averages: &Vec<(Rc<DynamicImage>,RGB)>) {
+fn collageify(image: &DynamicImage, block_size: u32, averages: &Vec<(Rc<DynamicImage>,RGB)>) -> DynamicImage {
 
     let width = block_size * (&image).width() / (&image).height();
     let height = block_size;
 
-    let toi16 = |a: usize| i16::try_from(a).unwrap(); 
+    let toi16 = |a: usize| i16::try_from(a).unwrap();
+    let mut new_image = DynamicImage::new_rgb8(image.height(), image.width());
 
     for x in (0..image.width()).step_by(usize::try_from(width).unwrap()){
         for y in (0..image.height()).step_by(usize::try_from(height).unwrap()){  
@@ -46,9 +47,10 @@ fn collageify(image:&mut DynamicImage, block_size: u32, averages: &Vec<(Rc<Dynam
         }).unwrap()
         .0.deref().resize(width, height, image::imageops::FilterType::Triangle);
 
-        image::imageops::overlay(image, &chosen, x.into(), y.into());
+        image::imageops::overlay(&mut new_image, &chosen, x.into(), y.into());
         }
     }
+    return new_image
 }
 
 fn main() {
@@ -100,7 +102,7 @@ fn main() {
 
     for i in 0..averages.len() {
 
-        let pathstr = format!("./result/{}.png", i);
+        let pathstr = format!("./result/{:<5}.png", i);
         let path = Path::new(&pathstr);
 
         if path.exists() {
@@ -108,13 +110,11 @@ fn main() {
             continue;
         }
 
-        let mut tmpimage = averages[i].0.deref().clone();
-
         let start = Instant::now();
-        collageify(&mut tmpimage, BLOCK_SIZE, &averages);
+        let mut solved = collageify( averages[i].0.deref(), BLOCK_SIZE, &averages);
         println!("Frame {} completed in {} secs", BLOCK_SIZE, (Instant::now() - start).as_secs());
 
-        averages[i].0.deref().save(path).unwrap();
+        solved.save(path).unwrap();
     }
 
     //for image in imgs {
