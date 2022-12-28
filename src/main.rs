@@ -29,25 +29,33 @@ fn collageify(image: &DynamicImage, block_size: u32, averages: &Vec<(Rc<DynamicI
     let mut new_image = DynamicImage::new_rgb8(image.width(), image.height());
 
     let mut shrunk_cache: HashMap<RGB, DynamicImage> = HashMap::new();
+    let mut best_cache:  HashMap<[i16; 3], &(Rc<DynamicImage>, [usize; 3])> = HashMap::new();
 
     for x in (0..image.width()).step_by(usize::try_from(width).unwrap()){
         for y in (0..image.height()).step_by(usize::try_from(height).unwrap()){  
 
             let block = &image.clone().crop(x, y, width, height);
-            //block.save("test/Block.png").expect("Could not save block image");
-            
             let average = &image_maths::image_average(&block).map(toi16);
-            let chosen = averages.into_iter().min_by(|(_, a), (_, b)| {
-                
-                let ai = a.map(toi16);
-                let bi = b.map(toi16);
 
-                let aval: i16 = (ai[0]-average[0]).abs() + (ai[1]-average[1]).abs() + (ai[2]-average[2]).abs();
-                let bval: i16 = (bi[0]-average[0]).abs() + (bi[1]-average[1]).abs() + (bi[2]-average[2]).abs();
+            let chosen: &(Rc<DynamicImage>, [usize; 3]);
 
-                return aval.cmp(&bval);
-                
-            }).unwrap();
+            if best_cache.contains_key(average) {
+                chosen = best_cache[average];
+            }
+            else {
+                chosen = averages.into_iter().min_by(|(_, a), (_, b)| {
+                    
+                    let ai = a.map(toi16);
+                    let bi = b.map(toi16);
+
+                    let aval: i16 = (ai[0]-average[0]).abs() + (ai[1]-average[1]).abs() + (ai[2]-average[2]).abs();
+                    let bval: i16 = (bi[0]-average[0]).abs() + (bi[1]-average[1]).abs() + (bi[2]-average[2]).abs();
+
+                    return aval.cmp(&bval);
+                    
+                }).unwrap();
+                best_cache.insert(*average, chosen);
+            }
 
             let image_index = chosen.1;
             if shrunk_cache.contains_key(&image_index) {
@@ -110,7 +118,7 @@ fn main() {
     
     println!("Processing...");
 
-    const BLOCK_SIZE: u32 = 35;
+    const BLOCK_SIZE: u32 = 25;
 
     for i in 0..averages.len() {
 
