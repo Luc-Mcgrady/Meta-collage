@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::ops::Deref;
 use std::time::Instant;
 
@@ -25,29 +26,40 @@ fn collageify(image: &DynamicImage, block_size: u32, averages: &Vec<(Rc<DynamicI
     let height = block_size;
 
     let toi16 = |a: usize| i16::try_from(a).unwrap();
-    let mut new_image = DynamicImage::new_rgb8(image.height(), image.width());
+    let mut new_image = DynamicImage::new_rgb8(image.width(), image.height());
+
+    let mut shrunk_cache: HashMap<RGB, DynamicImage> = HashMap::new();
 
     for x in (0..image.width()).step_by(usize::try_from(width).unwrap()){
         for y in (0..image.height()).step_by(usize::try_from(height).unwrap()){  
 
-        let block = &image.clone().crop(x, y, width, height);
-        //block.save("test/Block.png").expect("Could not save block image");
-        
-        let average = &image_maths::image_average(&block).map(toi16);
-        let chosen = averages.into_iter().min_by(|(_, a), (_, b)| {
+            let block = &image.clone().crop(x, y, width, height);
+            //block.save("test/Block.png").expect("Could not save block image");
             
-            let ai = a.map(toi16);
-            let bi = b.map(toi16);
+            let average = &image_maths::image_average(&block).map(toi16);
+            let chosen = averages.into_iter().min_by(|(_, a), (_, b)| {
+                
+                let ai = a.map(toi16);
+                let bi = b.map(toi16);
 
-            let aval: i16 = (ai[0]-average[0]).abs() + (ai[1]-average[1]).abs() + (ai[2]-average[2]).abs();
-            let bval: i16 = (bi[0]-average[0]).abs() + (bi[1]-average[1]).abs() + (bi[2]-average[2]).abs();
+                let aval: i16 = (ai[0]-average[0]).abs() + (ai[1]-average[1]).abs() + (ai[2]-average[2]).abs();
+                let bval: i16 = (bi[0]-average[0]).abs() + (bi[1]-average[1]).abs() + (bi[2]-average[2]).abs();
 
-            return aval.cmp(&bval);
+                return aval.cmp(&bval);
+                
+            }).unwrap();
+
+            let image_index = chosen.1;
+            if shrunk_cache.contains_key(&image_index) {
+                image::imageops::overlay(&mut new_image, &shrunk_cache[&image_index], x.into(), y.into());
+            }
+            else {
+                let shrunk_image = chosen.0.deref().resize(width, height, image::imageops::FilterType::Triangle);
+                shrunk_cache.insert(image_index, shrunk_image);
+                image::imageops::overlay(&mut new_image, &shrunk_cache[&image_index], x.into(), y.into());
+            }
             
-        }).unwrap()
-        .0.deref().resize(width, height, image::imageops::FilterType::Triangle);
 
-        image::imageops::overlay(&mut new_image, &chosen, x.into(), y.into());
         }
     }
     return new_image
