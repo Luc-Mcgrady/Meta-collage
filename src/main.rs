@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fs::{create_dir_all};
 use std::ops::Deref;
 use std::time::Instant;
 
@@ -75,26 +76,21 @@ fn collageify(image: &DynamicImage, block_size: u32, averages: &Vec<(Rc<DynamicI
 
 fn main() {
     
-    println!("Loading files...");
-    let paths = std::fs::read_dir("./input/").unwrap();
+    let input_dir = Path::new("./input/");
 
-    println!("Loading files1...");
+    create_dir_all(input_dir).expect("Failed to load input directory") ;
+
+    let paths = std::fs::read_dir(input_dir).expect("Invalid input directory");
     let mut files: Vec<PathBuf> = paths.map(|a| a.unwrap().path().to_owned() ).collect();
     files.sort_unstable();
-    
-    println!("Loading files2...");
     let imgs = &(&files).into_iter().map(|path| (path, Rc::new(image_maths::open_file(path))));
     
-    
-    println!("Calculating averages...");
+    println!("Loading files and calculating averages...");
     let start = Instant::now();
     let averages: Vec<(Rc<DynamicImage>,RGB)> = imgs.to_owned().into_iter().map(|(path, image)| {
         
         let cache_parent = &path.parent().unwrap().parent().unwrap().join(".cache");
-
-        if !cache_parent.exists() {
-            std::fs::create_dir(cache_parent).unwrap();
-        }
+        std::fs::create_dir_all(cache_parent).unwrap();
 
         let cache_path = cache_parent.join(format!("{}.avg", path.file_name().unwrap().to_str().unwrap()));
 
@@ -122,8 +118,10 @@ fn main() {
 
     for i in 0..averages.len() {
 
-        let pathstr = format!("./result/{:0width$}.png", i, width = 5);
-        let path = Path::new(&pathstr);
+        let result_path = Path::new("./result/");
+        std::fs::create_dir_all(result_path).expect("The \"result\" folder could not be created");
+
+        let path = result_path.join(format!("{:0width$}.png", i, width = 5));
 
         if path.exists() {
             println!("Skipping {}", i);
@@ -134,10 +132,7 @@ fn main() {
         let solved = collageify( averages[i].0.deref(), BLOCK_SIZE, &averages);
         println!("Frame {} completed in {} secs", i, (Instant::now() - start).as_secs());
 
-        solved.save(path).unwrap();
+        solved.save(path).expect("Could not save output");
     }
-
-    //for image in imgs {
-
 
 }
