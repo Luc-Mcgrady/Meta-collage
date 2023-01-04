@@ -16,12 +16,17 @@ fn main() {
         create_dir(input_dir).expect("Failed to load input directory") ;
     }
 
-    let output_dir = Path::new(&args[2]);
+    let collage_dir = Path::new(&args[2]);
+    if !collage_dir.exists() {
+        create_dir(collage_dir).expect("Failed to load input directory") ;
+    }
+
+    let output_dir = Path::new(&args[3]);
     if !output_dir.exists() {
         create_dir(output_dir).expect("Failed to create output directory");
     }
 
-    let block_size: u32 = args[3].parse().expect("Not a vaild block size");
+    let block_size: u32 = args[4].parse().expect("Not a vaild block size");
 
-    meta_collage(input_dir, output_dir, block_size);
+    meta_collage(input_dir, collage_dir, output_dir, block_size);
 }

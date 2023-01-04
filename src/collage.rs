@@ -64,16 +64,19 @@ pub fn collage(image: &DynamicImage, block_size: u32, averages: &Vec<(Rc<Dynamic
     return new_image
 }
 
-pub fn meta_collage(input_dir: &Path, output_dir: &Path, block_size: u32) {
+pub fn meta_collage(frames_dir: &Path, collage_dir: &Path, output_dir: &Path, block_size: u32) {
     
-    let paths = std::fs::read_dir(input_dir).expect("Invalid input directory");
-    let mut files: Vec<PathBuf> = paths.map(|a| a.unwrap().path().to_owned() ).collect();
+    let frame_paths = std::fs::read_dir(frames_dir).expect("Invalid input directory");
+    let collage_paths = std::fs::read_dir(collage_dir).expect("Invalid collage directory");
+
+    let mut files: Vec<PathBuf> = frame_paths.map(|a| a.unwrap().path().to_owned() ).collect();
     files.sort_unstable();
-    let imgs = &(&files).into_iter().map(|path| (path, Rc::new(image_maths::open_file(path))));
-    
+    let collage_choices = &(&files).into_iter().map(|path| (path, Rc::new(image_maths::open_file(path))));
+    let frames: Vec<DynamicImage> = collage_paths.map(|path| image_maths::open_file(&path.unwrap().path().to_owned())).collect();
+
     println!("Loading files and calculating averages...");
     let start = Instant::now();
-    let averages: Vec<(Rc<DynamicImage>,RGB)> = imgs.to_owned().into_iter().map(|(path, image)| {
+    let averages: Vec<(Rc<DynamicImage>,RGB)> = collage_choices.to_owned().into_iter().map(|(path, image)| {
         
         let cache_parent = &path.parent().unwrap().parent().unwrap().join(".cache");
         std::fs::create_dir_all(cache_parent).unwrap();
@@ -100,7 +103,7 @@ pub fn meta_collage(input_dir: &Path, output_dir: &Path, block_size: u32) {
     
     println!("Processing...");
 
-    for i in 0..averages.len() {
+    for i in 0..frames.len() {
 
         let path = output_dir.join(format!("{:0width$}.png", i, width = 5));
 
@@ -110,7 +113,7 @@ pub fn meta_collage(input_dir: &Path, output_dir: &Path, block_size: u32) {
         }
 
         let start = Instant::now();
-        let solved = collage( averages[i].0.deref(), block_size, &averages);
+        let solved = collage( &frames[i], block_size, &averages);
         println!("Frame {} completed in {} secs", i, (Instant::now() - start).as_secs());
 
         solved.save(path).expect("Could not save output");
