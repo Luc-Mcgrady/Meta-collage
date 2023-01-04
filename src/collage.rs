@@ -13,18 +13,18 @@ type RGB = [usize; 3];
 
 pub fn collage(image: &DynamicImage, block_size: u32, averages: &Vec<(Rc<DynamicImage>,RGB)>) -> DynamicImage {
 
-    let width = block_size * (&image).width() / (&image).height();
-    let height = block_size;
-
     let toi16 = |a: usize| i16::try_from(a).unwrap();
     let mut new_image = DynamicImage::new_rgb8(image.width(), image.height());
 
     let mut shrunk_cache: HashMap<RGB, DynamicImage> = HashMap::new();
     let mut best_cache:  HashMap<[i16; 3], &(Rc<DynamicImage>, [usize; 3])> = HashMap::new();
 
+    let width = block_size * (&averages[0].0).width() / (&averages[0].0).height();
+    let height = block_size;
+
     for x in (0..image.width()).step_by(usize::try_from(width).unwrap()){
         for y in (0..image.height()).step_by(usize::try_from(height).unwrap()){  
-
+            
             let block = &image.clone().crop(x, y, width, height);
             let average = &image_maths::image_average(&block).map(toi16);
 
