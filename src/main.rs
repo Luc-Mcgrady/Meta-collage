@@ -7,13 +7,14 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 4 {
-        println!("{} <input_dir:path> <output_dir:path> <block_size:int>", &args[0]);
+        println!("For all your video collage making needs. Set frames_dir to the same as collage_dir for a true \"meta collage\"");
+        println!("{} <frames_dir:path> <collage_dir:path> <output_dir:path> <block_size:int>", &args[0]);
         return
     }
 
-    let input_dir = Path::new(&args[1]);
-    if !input_dir.exists() {
-        create_dir(input_dir).expect("Failed to load input directory") ;
+    let frames_dir = Path::new(&args[1]);
+    if !frames_dir.exists() {
+        create_dir(frames_dir).expect("Failed to load input directory") ;
     }
 
     let collage_dir = Path::new(&args[2]);
@@ -28,5 +29,5 @@ fn main() {
 
     let block_size: u32 = args[4].parse().expect("Not a vaild block size");
 
-    meta_collage(input_dir, collage_dir, output_dir, block_size);
+    meta_collage(frames_dir, collage_dir, output_dir, block_size);
 }
