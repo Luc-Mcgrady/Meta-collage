@@ -67,16 +67,16 @@ pub fn collage(image: &DynamicImage, block_size: u32, averages: &Vec<(Rc<Dynamic
 pub fn meta_collage(frames_dir: &Path, collage_dir: &Path, output_dir: &Path, block_size: u32) {
     
     let frame_paths = std::fs::read_dir(frames_dir).expect("Invalid input directory");
-    let collage_paths = std::fs::read_dir(collage_dir).expect("Invalid collage directory");
+    let collage_paths = std::fs::read_dir(collage_dir).expect("Invalid collage directory").map(|a| a.unwrap());
 
-    let mut files: Vec<PathBuf> = frame_paths.map(|a| a.unwrap().path().to_owned() ).collect();
-    files.sort_unstable();
-    let collage_choices = &(&files).into_iter().map(|path| (path, Rc::new(image_maths::open_file(path))));
-    let frames: Vec<DynamicImage> = collage_paths.map(|path| image_maths::open_file(&path.unwrap().path().to_owned())).collect();
+    let mut frame_path_strs: Vec<PathBuf> = frame_paths.map(|a| a.unwrap().path().to_owned() ).collect();
+    frame_path_strs.sort_unstable();
+    let collage_choices = collage_paths.into_iter().map(|path| (path.path(), Rc::new(image_maths::open_file(&path.path()))));
+    let frames: Vec<DynamicImage> = frame_path_strs.into_iter().map(|path| image_maths::open_file(&path)).collect();
 
     println!("Loading files and calculating averages...");
     let start = Instant::now();
-    let averages: Vec<(Rc<DynamicImage>,RGB)> = collage_choices.to_owned().into_iter().map(|(path, image)| {
+    let averages: &Vec<(Rc<DynamicImage>,RGB)> = &(collage_choices).into_iter().map(|(path, image)| {
         
         let cache_parent = &path.parent().unwrap().parent().unwrap().join(".cache");
         std::fs::create_dir_all(cache_parent).unwrap();
