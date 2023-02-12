@@ -72,7 +72,7 @@ pub fn meta_collage(frames_dir: &Path, collage_dir: &Path, output_dir: &Path, bl
     let mut frame_path_strs: Vec<PathBuf> = frame_paths.map(|a| a.unwrap().path().to_owned() ).collect();
     frame_path_strs.sort_unstable();
     let collage_choices = collage_paths.into_iter().map(|path| (path.path(), Rc::new(image_maths::open_file(&path.path()))));
-    let frames: Vec<DynamicImage> = frame_path_strs.into_iter().map(|path| image_maths::open_file(&path)).collect();
+    let frames = frame_path_strs.into_iter().map(|path| image_maths::open_file(&path));
 
     println!("Loading files and calculating averages...");
     let start = Instant::now();
@@ -103,7 +103,7 @@ pub fn meta_collage(frames_dir: &Path, collage_dir: &Path, output_dir: &Path, bl
     
     println!("Processing...");
 
-    for i in 0..frames.len() {
+    for (i, frame) in frames.enumerate() {
 
         let path = output_dir.join(format!("{:0width$}.png", i, width = 5));
 
@@ -113,7 +113,7 @@ pub fn meta_collage(frames_dir: &Path, collage_dir: &Path, output_dir: &Path, bl
         }
 
         let start = Instant::now();
-        let solved = collage( &frames[i], block_size, &averages);
+        let solved = collage( &frame, block_size, &averages);
         println!("Frame {} completed in {} secs", i, (Instant::now() - start).as_secs());
 
         solved.save(path).expect("Could not save output");
