@@ -7,3 +7,6 @@ result
 
 *.old
 *.png
+*.mp4
+*.bmp
+images/
