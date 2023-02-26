@@ -1,12 +1,11 @@
-use std::{rc::Rc};
-
 use image::DynamicImage;
 pub mod image_maths;
 
 type RGB = [usize; 3];
 
 pub struct ImageAverage {
-    pub image: Rc<DynamicImage>,
+    pub orig_width: u32,
+    pub orig_height: u32, 
     pub thumbnail: DynamicImage,
     averages: [RGB; 9]
 }
@@ -31,15 +30,19 @@ pub fn calc_averages(image: &DynamicImage) -> [RGB; 9] {
 
 impl ImageAverage {
 
-    pub fn new(image: Rc<DynamicImage>, size: u32) -> Self {
+    pub fn new(image: &DynamicImage, size: u32) -> Self {
+
+        let orig_width = image.width();
+        let orig_height = image.height();
 
         let width = size * image.width() / image.height();
         let height = size;
+        
 
         let thumbnail = image.resize(width, height, image::imageops::FilterType::Triangle);
         let averages = calc_averages(&image);
 
-        return Self { image, thumbnail, averages };
+        return Self {orig_width, orig_height, thumbnail, averages };
     }
 
     pub fn weight(&self, other: [RGB; 9]) -> i16 {

@@ -11,11 +11,11 @@ use std::rc::{Rc};
 
 use self::image_average::calc_averages;
 
-pub fn collage(image: &DynamicImage, block_size: u32, averages: &Vec<Rc<ImageAverage>>) -> DynamicImage {
+pub fn collage(image: &DynamicImage, block_size: u32, averages: &Vec<ImageAverage>) -> DynamicImage {
 
     let mut new_image = DynamicImage::new_rgb8(image.width(), image.height());
 
-    let width = block_size * averages[0].image.width() / averages[0].image.height();
+    let width = block_size * averages[0].orig_width / averages[0].orig_height;
     let height = block_size;
 
     for x in (0..image.width()).step_by(usize::try_from(width).unwrap()){
@@ -53,9 +53,9 @@ pub fn meta_collage(frames_dir: &Path, collage_dir: &Path, output_dir: &Path, bl
 
     println!("Loading files and calculating averages...");
     let start = Instant::now();
-    let averages: &Vec<Rc<ImageAverage>> = &(collage_choices).into_iter().map(|image| {
+    let averages: &Vec<ImageAverage> = &(collage_choices).into_iter().map(|image| {
 
-        let average = Rc::new(ImageAverage::new(image, block_size));
+        let average = ImageAverage::new(&image, block_size);
 
         return average;
     }
