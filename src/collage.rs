@@ -1,65 +1,43 @@
 use std::collections::HashMap;
 
-use std::ops::Deref;
 use std::time::Instant;
 
 mod image_average;
 use image_average::image_maths;
+use image_average::ImageAverage;
 
 use image::{DynamicImage};
 use std::path::{Path, PathBuf};
 use std::rc::{Rc};
 
-type RGB = [usize; 3];
+use self::image_average::calc_averages;
 
-pub fn collage(image: &DynamicImage, block_size: u32, averages: &Vec<(Rc<DynamicImage>,RGB)>) -> DynamicImage {
+pub fn collage(image: &DynamicImage, block_size: u32, averages: &Vec<(Rc<ImageAverage>)>) -> DynamicImage {
 
-    let toi16 = |a: usize| i16::try_from(a).unwrap();
     let mut new_image = DynamicImage::new_rgb8(image.width(), image.height());
 
-    let mut shrunk_cache: HashMap<RGB, DynamicImage> = HashMap::new();
-    let mut best_cache:  HashMap<[i16; 3], &(Rc<DynamicImage>, [usize; 3])> = HashMap::new();
-
-    let width = block_size * (&averages[0].0).width() / (&averages[0].0).height();
+    let width = block_size * averages[0].image.width() / averages[0].image.height();
     let height = block_size;
 
     for x in (0..image.width()).step_by(usize::try_from(width).unwrap()){
         for y in (0..image.height()).step_by(usize::try_from(height).unwrap()){  
             
             let block = &image.clone().crop(x, y, width, height);
-            let average = &[0,0,0];
+            let average = calc_averages(block);
 
-            let chosen: &(Rc<DynamicImage>, [usize; 3]);
+            let chosen: &ImageAverage;
 
-            if best_cache.contains_key(average) {
-                chosen = best_cache[average];
-            }
-            else {
-                chosen = averages.into_iter().min_by(|(_, a), (_, b)| {
-                    
-                    let ai = a.map(toi16);
-                    let bi = b.map(toi16);
+            chosen = averages.into_iter().min_by(|a, b| {
 
-                    let aval: i16 = (ai[0]-average[0]).abs() + (ai[1]-average[1]).abs() + (ai[2]-average[2]).abs();
-                    let bval: i16 = (bi[0]-average[0]).abs() + (bi[1]-average[1]).abs() + (bi[2]-average[2]).abs();
+                let aweight = a.weight(average);
+                let bweight = b.weight(average);
 
-                    return aval.cmp(&bval);
-                    
-                }).unwrap();
-                best_cache.insert(*average, chosen);
-            }
+                return aweight.cmp(&bweight);
 
-            let image_index = chosen.1;
-            if shrunk_cache.contains_key(&image_index) {
-                image::imageops::overlay(&mut new_image, &shrunk_cache[&image_index], x.into(), y.into());
-            }
-            else {
-                let shrunk_image = chosen.0.deref().resize(width, height, image::imageops::FilterType::Triangle);
-                shrunk_cache.insert(image_index, shrunk_image);
-                image::imageops::overlay(&mut new_image, &shrunk_cache[&image_index], x.into(), y.into());
-            }
+            }).unwrap();
+
+            image::imageops::overlay(&mut new_image, &chosen.thumbnail, x.into(), y.into());
             
-
         }
     }
     return new_image
@@ -77,27 +55,11 @@ pub fn meta_collage(frames_dir: &Path, collage_dir: &Path, output_dir: &Path, bl
 
     println!("Loading files and calculating averages...");
     let start = Instant::now();
-    let averages: &Vec<(Rc<DynamicImage>,RGB)> = &(collage_choices).into_iter().map(|(path, image)| {
-        
-        let cache_parent = &path.parent().unwrap().parent().unwrap().join(".cache");
-        std::fs::create_dir_all(cache_parent).unwrap();
+    let averages: &Vec<Rc<ImageAverage>> = &(collage_choices).into_iter().map(|(path, image)| {
 
-        let cache_path = cache_parent.join(format!("{}.avg", path.file_name().unwrap().to_str().unwrap()));
+        let average = Rc::new(ImageAverage::new(image, block_size));
 
-        if cache_path.exists() {
-            let average_file = std::fs::read(cache_path).expect("Can not read file");
-
-            let average: RGB = serde_pickle::from_iter(average_file.into_iter(), Default::default()).expect("Invalid file format");
-
-            return (image, average);
-        }
-
-        let average = image_maths::image_average(&image);
-
-        let pickled = serde_pickle::to_vec(&average, Default::default()).expect("Couldent pickle :(");
-        std::fs::write(cache_path, pickled).expect("Failed to write to file");
-
-        return (image, average);
+        return average;
     }
     ).collect();
     println!("Averages completed in {} secs", (Instant::now() - start).as_secs());
