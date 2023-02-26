@@ -12,7 +12,7 @@ use std::rc::{Rc};
 
 use self::image_average::calc_averages;
 
-pub fn collage(image: &DynamicImage, block_size: u32, averages: &Vec<(Rc<ImageAverage>)>) -> DynamicImage {
+pub fn collage(image: &DynamicImage, block_size: u32, averages: &Vec<Rc<ImageAverage>>) -> DynamicImage {
 
     let mut new_image = DynamicImage::new_rgb8(image.width(), image.height());
 

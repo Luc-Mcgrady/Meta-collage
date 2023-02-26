@@ -18,11 +18,12 @@ pub fn calc_averages(image: &DynamicImage) -> [RGB; 9] {
     let mut averages = [[0; 3]; 9];
 
     for i in 0..9 {
-        let x = (width / 3) * i % 3;
-        let y = (height / 3) * i / 3;
+        let x = (width / 3) * (i % 3);
+        let y = (height / 3) * (i / 3);
         
         let block = image.crop_imm(x, y, width / 3, height / 3);
-        averages[0] = image_maths::image_average(&block);
+        //block.save(format!("{}.png", i)).unwrap();
+        averages[usize::try_from(i).unwrap()] = image_maths::image_average(&block);
     }
 
     return averages;
