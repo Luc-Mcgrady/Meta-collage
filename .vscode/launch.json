@@ -14,9 +14,9 @@
                 ]
             },
             "args": [
-                "images/input-bad-apple/",
-                "images/input-bad-apple/",
-                "images/output-bad-apple/",
+                "images/input/",
+                "images/input/",
+                "images/10/",
                 "50"
             ]
         }
