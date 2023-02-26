@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use std::ops::Deref;
 use std::time::Instant;
 
-pub mod image_maths;
+mod image_average;
+use image_average::image_maths;
 
 use image::{DynamicImage};
 use std::path::{Path, PathBuf};
@@ -26,7 +27,7 @@ pub fn collage(image: &DynamicImage, block_size: u32, averages: &Vec<(Rc<Dynamic
         for y in (0..image.height()).step_by(usize::try_from(height).unwrap()){  
             
             let block = &image.clone().crop(x, y, width, height);
-            let average = &image_maths::image_average(&block).map(toi16);
+            let average = &[0,0,0];
 
             let chosen: &(Rc<DynamicImage>, [usize; 3]);
 
