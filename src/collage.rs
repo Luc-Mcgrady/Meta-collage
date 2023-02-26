@@ -25,18 +25,17 @@ pub fn collage(image: &DynamicImage, block_size: u32, averages: &Vec<Rc<ImageAve
             let block = &image.clone().crop(x, y, width, height);
             let average = calc_averages(block);
 
-            let chosen: &ImageAverage;
+            let weights = averages.into_iter().map(|a| {
+                return (a.weight(average), a);
+            });
 
-            chosen = averages.into_iter().min_by(|a, b| {
+            let chosen = weights.into_iter().min_by(|(a, _), (b, _)| {
 
-                let aweight = a.weight(average);
-                let bweight = b.weight(average);
-
-                return aweight.cmp(&bweight);
+                return a.cmp(&b);
 
             }).unwrap();
 
-            image::imageops::overlay(&mut new_image, &chosen.thumbnail, x.into(), y.into());
+            image::imageops::overlay(&mut new_image, &chosen.1.thumbnail, x.into(), y.into());
             
         }
     }
