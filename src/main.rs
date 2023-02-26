@@ -28,6 +28,15 @@ fn main() {
     }
 
     let block_size: u32 = args[4].parse().expect("Not a vaild block size");
+    let output_scale_option;
 
-    meta_collage(frames_dir, collage_dir, output_dir, block_size);
+    if args.len() > 4 {
+        output_scale_option = args[5].parse().unwrap();
+    }
+    else {
+        output_scale_option = 1;
+    }
+
+    meta_collage(frames_dir, collage_dir, output_dir, block_size, output_scale_option);
+
 }

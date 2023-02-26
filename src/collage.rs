@@ -43,7 +43,7 @@ pub fn collage(image: &DynamicImage, block_size: u32, averages: &Vec<Rc<ImageAve
     return new_image
 }
 
-pub fn meta_collage(frames_dir: &Path, collage_dir: &Path, output_dir: &Path, block_size: u32) {
+pub fn meta_collage(frames_dir: &Path, collage_dir: &Path, output_dir: &Path, block_size: u32, output_scale: u32) {
     
     let frame_paths = std::fs::read_dir(frames_dir).expect("Invalid input directory");
     let collage_paths = std::fs::read_dir(collage_dir).expect("Invalid collage directory").map(|a| a.unwrap());
@@ -76,7 +76,7 @@ pub fn meta_collage(frames_dir: &Path, collage_dir: &Path, output_dir: &Path, bl
         }
 
         let start = Instant::now();
-        let scaled = &frame.resize(frame.width() * 2, frame.height() * 2, imageops::FilterType::Triangle);
+        let scaled = &frame.resize(frame.width() * output_scale, frame.height() * output_scale, imageops::FilterType::Triangle);
         let solved = collage(scaled, block_size, &averages);
         println!("Frame {} completed in {} ms", i, (Instant::now() - start).as_millis());
 
