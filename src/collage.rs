@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::time::Instant;
 
 mod image_average;
+use image::imageops;
 use image_average::image_maths;
 use image_average::ImageAverage;
 
@@ -75,8 +76,9 @@ pub fn meta_collage(frames_dir: &Path, collage_dir: &Path, output_dir: &Path, bl
         }
 
         let start = Instant::now();
-        let solved = collage( &frame, block_size, &averages);
-        println!("Frame {} completed in {} secs", i, (Instant::now() - start).as_secs());
+        let scaled = &frame.resize(frame.width() * 2, frame.height() * 2, imageops::FilterType::Triangle);
+        let solved = collage(scaled, block_size, &averages);
+        println!("Frame {} completed in {} ms", i, (Instant::now() - start).as_millis());
 
         solved.save(path).expect("Could not save output");
     }
